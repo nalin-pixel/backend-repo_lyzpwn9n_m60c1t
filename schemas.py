@@ -11,32 +11,53 @@ Model name is converted to lowercase for the collection name:
 - BlogPost -> "blogs" collection
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional
+from pydantic import BaseModel, Field, EmailStr
+from typing import Optional, Literal
 
-# Example schemas (replace with your own):
+# Core salon models
 
+class Service(BaseModel):
+    """
+    Storitev v salonu
+    Collection: "service"
+    """
+    key: Literal["striženje", "barvanje"] = Field(..., description="Tip storitve")
+    title: str = Field(..., description="Prijazno ime storitve za prikaz")
+    min_duration: int = Field(..., ge=15, le=480, description="Minimalno trajanje v minutah")
+    max_duration: int = Field(..., ge=15, le=480, description="Maksimalno trajanje v minutah")
+    step: int = Field(30, ge=5, le=120, description="Korak izbire trajanja v minutah")
+    price_from: Optional[float] = Field(None, ge=0, description="Cena od (opcijsko)")
+
+class Appointment(BaseModel):
+    """
+    Termin naročila
+    Collection: "appointment"
+    """
+    service: Literal["striženje", "barvanje"] = Field(..., description="Storitev")
+    duration_minutes: int = Field(..., ge=15, le=480, description="Trajanje v minutah")
+    date: str = Field(..., description="Datum v obliki YYYY-MM-DD")
+    start_time: str = Field(..., description="Začetek HH:MM (24h)")
+    end_time: Optional[str] = Field(None, description="Konec HH:MM (24h) – izračuna backend")
+    name: str = Field(..., description="Ime in priimek")
+    phone: str = Field(..., description="Telefon")
+    email: Optional[EmailStr] = Field(None, description="E-pošta (opcijsko)")
+    notes: Optional[str] = Field(None, description="Opombe")
+    status: Literal["potrjeno", "preklicano", "v_procesu"] = Field("potrjeno", description="Stanje termina")
+
+# Example schemas kept for reference (unused by this app)
 class User(BaseModel):
-    """
-    Users collection schema
-    Collection name: "user" (lowercase of class name)
-    """
-    name: str = Field(..., description="Full name")
-    email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
-    is_active: bool = Field(True, description="Whether user is active")
+    name: str
+    email: str
+    address: str
+    age: Optional[int] = None
+    is_active: bool = True
 
 class Product(BaseModel):
-    """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
-    """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
+    title: str
+    description: Optional[str] = None
+    price: float
+    category: str
+    in_stock: bool = True
 
 # Add your own schemas here:
 # --------------------------------------------------
